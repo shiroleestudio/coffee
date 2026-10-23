@@ -21,9 +21,21 @@ await step('앱이 렌더링된다', async () => {
   if (!/my coffee recipe/i.test(t)) throw new Error(`제목: ${t}`);
 });
 
-await step('17개 레시피가 보인다', async () => {
+await step('17개 레시피가 HOT/ICE 묶음 카드 9장으로 보인다', async () => {
   const n = await page.locator('article').count();
-  if (n !== 17) throw new Error(`카드 ${n}개`);
+  if (n !== 9) throw new Error(`카드 ${n}개`);
+  const rows = await page.locator('article li').count();
+  if (rows !== 17) throw new Error(`버전 줄 ${rows}개`);
+  // 같은 제목이 목록에 두 번 나오지 않는다
+  const titles = await page.locator('article h3').allTextContents();
+  if (new Set(titles).size !== titles.length) throw new Error(`제목 중복: ${titles.join(', ')}`);
+});
+
+await step('카드의 ICE 줄을 누르면 ICE 버전 상세가 열린다', async () => {
+  await page.getByRole('button', { name: '484 아이스 ICE 열기' }).click();
+  await page.locator('[role=dialog] h2', { hasText: '484 아이스' }).waitFor();
+  await page.keyboard.press('Escape');
+  await page.waitForSelector('[role=dialog]', { state: 'detached' });
 });
 
 await step('처음 열면 Femobook A2 가 기본 그라인더다', async () => {
@@ -92,32 +104,33 @@ await step('원두량 조절 기능은 없다', async () => {
 
 await step('검색이 목록을 줄인다', async () => {
   await page.fill('input[type=search]', '카스야');
-  await page.waitForFunction(() => document.querySelectorAll('article').length === 2);
+  // HOT/ICE 두 버전이 한 카드에
+  await page.waitForFunction(() => document.querySelectorAll('article').length === 1 && document.querySelectorAll('article li').length === 2);
   await page.fill('input[type=search]', '');
-  await page.waitForFunction(() => document.querySelectorAll('article').length === 17);
+  await page.waitForFunction(() => document.querySelectorAll('article').length === 9);
 });
 
-await step('ICE 칩이 9개로 줄이고, 다시 누르면 풀린다', async () => {
+await step('ICE 칩이 ICE 버전 9개로 줄이고, 다시 누르면 풀린다', async () => {
+  await page.getByRole('button', { name: 'ICE', exact: true }).click();
+  await page.waitForFunction(() => document.querySelectorAll('article li').length === 9);
   await page.getByRole('button', { name: 'ICE', exact: true }).click();
   await page.waitForFunction(() => document.querySelectorAll('article').length === 9);
-  await page.getByRole('button', { name: 'ICE', exact: true }).click();
-  await page.waitForFunction(() => document.querySelectorAll('article').length === 17);
 });
 
 await step('필터 패널의 드리퍼 조건은 접어도 칩으로 남고, 칩으로 풀린다', async () => {
   await page.getByRole('button', { name: /^필터/ }).click();
   await page.getByRole('button', { name: '칼리타', exact: true }).click();
-  await page.waitForFunction(() => document.querySelectorAll('article').length === 2);
+  await page.waitForFunction(() => document.querySelectorAll('article li').length === 2);
   await page.getByRole('button', { name: /^필터/ }).click(); // 접기
   await page.getByRole('button', { name: '칼리타', exact: true }).click(); // 칩으로 해제
-  await page.waitForFunction(() => document.querySelectorAll('article').length === 17);
+  await page.waitForFunction(() => document.querySelectorAll('article').length === 9);
 });
 
 await step('조건에 맞는 레시피가 없으면 안내와 필터 초기화가 나온다', async () => {
   await page.fill('input[type=search]', 'zzz-없는-레시피');
   await page.waitForSelector('text=조건에 맞는 레시피가 없습니다');
   await page.getByRole('button', { name: '필터 초기화' }).click();
-  await page.waitForFunction(() => document.querySelectorAll('article').length === 17);
+  await page.waitForFunction(() => document.querySelectorAll('article').length === 9);
 });
 
 await step('상세 시트가 열린다', async () => {
@@ -212,7 +225,7 @@ await step('레시피를 추가하면 그 카테고리 구역이 생긴다', asy
   // 카테고리 탭이 아니라 구역 — 레시피가 생긴 카테고리만 구역이 된다
   await page.getByRole('heading', { name: '모카포트', exact: true }).waitFor();
   if ((await page.getByRole('heading', { name: '에스프레소', exact: true }).count()) !== 0) throw new Error('빈 카테고리가 구역으로 나온다');
-  await page.waitForFunction(() => document.querySelectorAll('article').length === 18);
+  await page.waitForFunction(() => document.querySelectorAll('article').length === 10);
 });
 
 await step('추출을 기록하면 조정 제안이 나온다', async () => {

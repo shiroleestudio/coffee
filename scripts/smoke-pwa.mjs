@@ -58,7 +58,7 @@ await step('네트워크를 끊어도 앱이 열린다', async () => {
   await page.reload();
   await page.waitForSelector('article', { timeout: 5000 });
   const n = await page.locator('article').count();
-  if (n !== 17) throw new Error(`카드 ${n}개`);
+  if (n !== 9) throw new Error(`카드 ${n}개`);
 });
 
 await step('오프라인에서도 타이머와 기록이 동작한다', async () => {

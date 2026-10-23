@@ -88,6 +88,7 @@ const paths: Record<string, JSX.Element> = {
     </>
   ),
   plus: <path d="M12 5v14M5 12h14" />,
+  chevron: <path d="m9 6 6 6-6 6" />,
   skipBack: <path d="M19 20 9 12l10-8v16ZM5 19V5" />,
   skipForward: <path d="m5 4 10 8-10 8V4ZM19 5v14" />,
   swap: (

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defaultFilters, filterRecipes, groupRecipes, hasActiveFilters, recentRecipes } from './filter';
+import { defaultFilters, familiesOf, filterRecipes, groupRecipes, hasActiveFilters, recentRecipes } from './filter';
 import type { BrewLog, Recipe } from '../types';
 import { seedRecipes } from '../data/recipes';
 import type { Filters } from '../types';
@@ -77,22 +77,63 @@ describe('hasActiveFilters', () => {
   });
 });
 
+/** family 가 없는 레시피 */
+const solo = (): Recipe => {
+  const { family: _f, ...rest } = seedRecipes[0]!;
+  void _f;
+  return rest;
+};
+
+describe('familiesOf', () => {
+  it('HOT/ICE 버전을 한 묶음으로, HOT 을 먼저 둔다', () => {
+    const fams = familiesOf(seedRecipes);
+    // 8쌍 + 정인성 아이스 드립(ICE 만)
+    expect(fams).toHaveLength(9);
+    const v60 = fams.find((f) => f.key === 'v60-clean')!;
+    expect(v60.variants.map((r) => r.serve)).toEqual(['hot', 'ice']);
+    expect(v60.title).toBe('하리오 V60 깔끔 레시피');
+    expect(fams.find((f) => f.key === 'jungins-ice')!.variants).toHaveLength(1);
+  });
+
+  it('ICE 가 먼저 들어와도 HOT 이 앞에 서고 제목은 HOT 것이다', () => {
+    const hot = seedRecipes.find((r) => r.id === '484-original-hot')!;
+    const ice = seedRecipes.find((r) => r.id === '484-ice')!;
+    const [fam] = familiesOf([ice, hot]);
+    expect(fam!.variants.map((r) => r.id)).toEqual(['484-original-hot', '484-ice']);
+    expect(fam!.title).toBe('484 오리지널');
+  });
+
+  it('family 가 없는 레시피는 혼자 묶음이다', () => {
+    const a: Recipe = { ...solo(), id: 'a' };
+    const b: Recipe = { ...solo(), id: 'b' };
+    expect(familiesOf([a, b]).map((f) => f.key)).toEqual(['a', 'b']);
+  });
+});
+
 describe('groupRecipes', () => {
-  it('레시피가 있는 카테고리만 구역이 되고, 즐겨찾기가 먼저 온다', () => {
+  it('레시피가 있는 카테고리만 구역이 되고, 즐겨찾기 묶음이 먼저 온다', () => {
     const groups = groupRecipes(seedRecipes, none);
     expect(groups.map((g) => g.category)).toEqual(['drip']);
-    expect(groups[0]!.recipes).toHaveLength(17);
+    expect(groups[0]!.count).toBe(17);
+    expect(groups[0]!.families).toHaveLength(9);
 
-    const third = seedRecipes[2]!;
-    const starred = groupRecipes(seedRecipes, new Set([third.id]));
-    expect(starred[0]!.recipes[0]!.id).toBe(third.id);
+    // ICE 버전만 즐겨찾기여도 묶음 전체가 앞으로 온다
+    const starred = groupRecipes(seedRecipes, new Set(['484-ice']));
+    expect(starred[0]!.families[0]!.key).toBe('484');
     // 나머지는 원래 순서
-    expect(starred[0]!.recipes.slice(1).map((r) => r.id)).toEqual(seedRecipes.filter((r) => r.id !== third.id).map((r) => r.id));
+    expect(starred[0]!.families.slice(1).map((f) => f.key)).toEqual(
+      familiesOf(seedRecipes).map((f) => f.key).filter((k) => k !== '484'),
+    );
+  });
+
+  it('조건으로 걸러진 버전은 묶음에서도 빠진다', () => {
+    const ice = groupRecipes(filterRecipes(seedRecipes, f({ serve: 'ice' }), none), none);
+    expect(ice[0]!.families.every((fam) => fam.variants.every((r) => r.serve === 'ice'))).toBe(true);
   });
 
   it('카테고리 순서는 CATEGORIES 를 따른다', () => {
-    const moka: Recipe = { ...seedRecipes[0]!, id: 'm', category: 'mokapot' };
-    const esp: Recipe = { ...seedRecipes[0]!, id: 'e', category: 'espresso' };
+    const moka: Recipe = { ...solo(), id: 'm', category: 'mokapot' };
+    const esp: Recipe = { ...solo(), id: 'e', category: 'espresso' };
     expect(groupRecipes([esp, moka, ...seedRecipes], none).map((g) => g.category)).toEqual(['drip', 'mokapot', 'espresso']);
   });
 });

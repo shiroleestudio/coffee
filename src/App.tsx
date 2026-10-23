@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Bean, BrewLog, Filters, Recipe } from './types';
 import { seedRecipes } from './data/recipes';
-import { defaultFilters, filterRecipes, groupRecipes, hasActiveFilters, recentRecipes } from './lib/filter';
+import { defaultFilters, filterRecipes, groupRecipes, hasActiveFilters, isFavoriteFamily, recentRecipes } from './lib/filter';
 import { KEYS, STORAGE_ERROR_EVENT } from './lib/storage';
 import { useServiceWorkerUpdate } from './hooks/useServiceWorkerUpdate';
 import { isBean, isBrewLog, isRecipe, sanitizeList } from './lib/validate';
@@ -26,7 +26,7 @@ const keepBeans = (raw: unknown): Bean[] => {
 import { usePersistentState } from './hooks/usePersistentState';
 import { Icon } from './components/Icon';
 import { FilterBar } from './components/FilterBar';
-import { RecipeRow } from './components/RecipeRow';
+import { RecipeCard } from './components/RecipeCard';
 import { BottomNav, type View } from './components/BottomNav';
 import { RecipeDetail } from './components/RecipeDetail';
 import { RecipeForm } from './components/RecipeForm';
@@ -106,6 +106,13 @@ export default function App() {
 
   const toggleFavorite = useCallback(
     (id: string) => setFavoriteIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])),
+    [setFavoriteIds],
+  );
+
+  /** 카드의 당근은 HOT/ICE 묶음 전체를 켜고 끈다 (상세 시트의 당근은 그 버전만) */
+  const setFamilyFavorite = useCallback(
+    (ids: string[], on: boolean) =>
+      setFavoriteIds((prev) => (on ? [...new Set([...prev, ...ids])] : prev.filter((x) => !ids.includes(x)))),
     [setFavoriteIds],
   );
 
@@ -321,21 +328,24 @@ export default function App() {
                     <h2 className="hand text-[22px] leading-none text-ink">{g.label}</h2>
                   </div>
                   <p className="text-xs text-ink-soft">
-                    <span className="num font-bold text-ink">{g.recipes.length}</span>개
+                    <span className="num font-bold text-ink">{g.families.length}</span>가지
                   </p>
                 </div>
-                <div className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-card shadow-card">
-                  {g.recipes.map((recipe) => (
-                    <RecipeRow
-                      key={recipe.id}
-                      recipe={recipe}
-                      favorite={favorites.has(recipe.id)}
-                      myGrinder={myGrinderProfile}
-                      calibration={effectiveCalibration}
-                      onOpen={() => setSheet({ kind: 'detail', id: recipe.id })}
-                      onToggleFavorite={() => toggleFavorite(recipe.id)}
-                    />
-                  ))}
+                <div className="space-y-3">
+                  {g.families.map((family) => {
+                    const fav = isFavoriteFamily(family, favorites);
+                    return (
+                      <RecipeCard
+                        key={family.key}
+                        family={family}
+                        favorite={fav}
+                        myGrinder={myGrinderProfile}
+                        calibration={effectiveCalibration}
+                        onOpen={(id) => setSheet({ kind: 'detail', id })}
+                        onToggleFavorite={() => setFamilyFavorite(family.variants.map((r) => r.id), !fav)}
+                      />
+                    );
+                  })}
                 </div>
               </section>
             ))}
@@ -356,10 +366,12 @@ export default function App() {
         type="button"
         hidden={view !== 'recipes'}
         onClick={() => setSheet({ kind: 'form', id: null })}
-        className="fixed right-5 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-20 flex items-center gap-2 rounded-full bg-ink px-5 py-3.5 font-bold text-canvas shadow-float transition hover:opacity-90"
+        aria-label="레시피 추가"
+        title="레시피 추가"
+        className="fixed right-5 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-20 grid h-14 w-14 place-items-center rounded-full bg-ink text-canvas shadow-float transition hover:opacity-90"
       >
-        <Icon name="plus" size={18} />
-        레시피 추가
+        {/* 둥근 + 하나 — 글자 단추는 목록 오른쪽 수치 칸을 가렸다 */}
+        <Icon name="plus" size={24} />
       </button>
 
       <BottomNav
