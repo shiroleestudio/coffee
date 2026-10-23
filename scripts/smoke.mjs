@@ -38,10 +38,27 @@ await step('카드의 ICE 줄을 누르면 ICE 버전 상세가 열린다', asyn
   await page.waitForSelector('[role=dialog]', { state: 'detached' });
 });
 
+/** 4666 V2 HOT 상세에 보이는 분쇄도 글 (목록 타일에는 분쇄도가 없다) */
+const grindText = async () => {
+  await page.getByRole('button', { name: '4666 V2', exact: true }).first().click();
+  const text = await page.locator('[role=dialog]').textContent();
+  await page.keyboard.press('Escape');
+  await page.waitForSelector('[role=dialog]', { state: 'detached' });
+  return text ?? '';
+};
+
 await step('처음 열면 Femobook A2 가 기본 그라인더다', async () => {
-  const body = await page.textContent('main');
+  const body = await grindText();
   // 4666 V2 — 코만단테 22~24 → Femobook 45~48.5
   if (!body.includes('Femobook A2 45~48.5')) throw new Error(`기본 환산이 안 보인다: ${body.slice(0, 300)}`);
+});
+
+await step('한 화면에 레시피 타일이 여덟 개 넘게 들어간다', async () => {
+  const bottoms = await page.locator('article').evaluateAll((els) => els.map((e) => e.getBoundingClientRect().bottom));
+  const inView = bottoms.filter((b) => b <= 844).length;
+  if (inView < 6) throw new Error(`첫 화면에 ${inView}개`);
+  const last = bottoms.at(-1) ?? 0;
+  if (last > 844 * 1.6) throw new Error(`마지막 타일이 ${Math.round(last)}px 아래`);
 });
 
 await step('V60 깔끔 레시피는 코만단테와 EK43 을 각각 환산하고 차이를 알린다', async () => {
@@ -262,7 +279,7 @@ await step('Femobook A2 를 고르면 분쇄도가 환산된다', async () => {
   await page.waitForSelector('text=환산 기준 보정');
   await page.keyboard.press('Escape');
   await page.waitForSelector('[role=dialog]', { state: 'detached' });
-  const body = await page.textContent('main');
+  const body = await grindText();
   // 코만단테 22~24 → Femobook 45~48.5 (기준 45)
   if (!body.includes('Femobook A2 45~48.5')) throw new Error(`환산값이 안 보인다: ${body.slice(0, 400)}`);
   if (!body.includes('코만단테 22~24')) throw new Error('원본 값이 사라졌다');
@@ -273,7 +290,7 @@ await step('보정하면 환산값이 함께 움직인다', async () => {
   await page.getByRole('button', { name: '기준 1클릭 늘리기' }).click(); // 45 → 46
   await page.keyboard.press('Escape');
   await page.waitForSelector('[role=dialog]', { state: 'detached' });
-  const body = await page.textContent('main');
+  const body = await grindText();
   if (!body.includes('Femobook A2 46~49.5')) throw new Error(`보정이 반영 안 됨: ${body.slice(0, 300)}`);
 });
 
@@ -306,12 +323,12 @@ await step('원두를 등록하면 로스팅 일수가 계산된다', async () =
 
 await step('원두를 고르면 그 원두의 기준으로 분쇄도가 바뀐다', async () => {
   await page.getByRole('button', { name: /^레시피$/ }).click();
-  let body = await page.textContent('main');
+  let body = await grindText();
   // 설정 보정값(46) 대신 원두 기준(41)이 쓰인다
   if (!body.includes('Femobook A2 41~44.5')) throw new Error(`원두 기준 미반영: ${body.slice(0, 400)}`);
   // 원두 선택을 풀면 설정 보정값으로 돌아간다
   await page.locator('main select').first().selectOption('');
-  body = await page.textContent('main');
+  body = await grindText();
   if (!body.includes('Femobook A2 46~49.5')) throw new Error(`원두 해제 후 복귀 안 됨: ${body.slice(0, 300)}`);
 });
 

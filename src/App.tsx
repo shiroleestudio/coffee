@@ -331,7 +331,8 @@ export default function App() {
                     <span className="num font-bold text-ink">{g.families.length}</span>가지
                   </p>
                 </div>
-                <div className="space-y-3">
+                {/* 두 줄 격자 — 레시피 9개가 한 화면 남짓에 든다 */}
+                <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3">
                   {g.families.map((family) => {
                     const fav = isFavoriteFamily(family, favorites);
                     return (
@@ -339,8 +340,6 @@ export default function App() {
                         key={family.key}
                         family={family}
                         favorite={fav}
-                        myGrinder={myGrinderProfile}
-                        calibration={effectiveCalibration}
                         onOpen={(id) => setSheet({ kind: 'detail', id })}
                         onToggleFavorite={() => setFamilyFavorite(family.variants.map((r) => r.id), !fav)}
                       />
