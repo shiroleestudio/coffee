@@ -30,16 +30,12 @@ npm run build:single # dist-single/index.html — 외부 의존성 없는 단일
 
 ## GitHub Pages 배포
 
-주소: **https://dooholee96-code.github.io/MY-COFFEE-RECIPE/**
+주소: **https://shiroleestudio.github.io/coffee/** (저장소 shiroleestudio/coffee)
 
 `main` 에 푸시하면 `.github/workflows/deploy.yml` 이 검사(lint·테스트) → 빌드 → 배포합니다.
 검사가 실패하면 배포하지 않으므로, 잘못된 빌드가 돌고 있는 사이트를 덮어쓰지 않습니다.
 
-처음 한 번만:
-
-1. **`main` 브랜치 만들기** — 지금은 작업 브랜치만 있습니다. 이 브랜치를 `main` 으로 만들고
-   Settings → General → Default branch 를 `main` 으로 바꿉니다.
-2. **Pages 켜기** — Settings → Pages → Build and deployment → Source 를 **GitHub Actions** 로.
+Pages 설정은 Settings → Pages → Build and deployment → Source = **GitHub Actions** 입니다(이미 되어 있음).
 
 배포본은 단일 HTML 파일과 달리:
 
@@ -52,7 +48,7 @@ npm run build:single # dist-single/index.html — 외부 의존성 없는 단일
   저장됩니다. 파일로 열던 버전과 Pages 버전은 서로 다른 저장소를 씁니다 — 옮기려면
   설정 → 백업에서 내보내고 불러오세요. 기록은 공개되지 않습니다.
 - **공개 사이트입니다.** 주소를 아는 사람은 누구나 레시피를 볼 수 있습니다 (저장소도 공개).
-- 같은 계정의 다른 Pages 프로젝트와 브라우저 저장소를 공유합니다(`dooholee96-code.github.io`).
+- 같은 조직의 다른 Pages 프로젝트와 브라우저 저장소를 공유합니다(`shiroleestudio.github.io`).
   이 앱의 키는 `mcr:` 로 시작해 겹치지 않지만, 다른 앱이 저장소 전체를 지우면 같이 지워집니다.
   가끔 백업을 내보내 두세요.
 
@@ -189,3 +185,18 @@ EK43 은 다이얼이 두 종류이고 같은 숫자가 전혀 다른 굵기입�
   기존 브루잉 앱들(Filtru, Coffee Book, Beanconqueror 등)이 공통으로 가진 축입니다.
 - **런타임 Babel 제거.** CDN 에서 2MB 넘는 컴파일러를 매번 받아 브라우저에서 JSX 를
   컴파일했습니다. 지금은 빌드 시점에 끝내고 단일 파일 기준 240KB 입니다.
+
+## 운영
+
+- **작업 규칙**은 `AGENTS.md`(사람과 AI 공용). `CLAUDE.md` 는 그 파일을 가리키기만 합니다.
+- **배포 확인**: `main` 푸시 → Actions 탭 "Deploy to GitHub Pages" 가 초록이면 1~2분 뒤 반영. 검사가 빨갛면 사이트는 바뀌지 않습니다.
+- **되돌리기**: `git revert <커밋>` 후 `main` 푸시. 워크플로가 다시 배포합니다.
+- **빌드 도구가 썩었을 때**: 이 앱은 Vite·React·Tailwind 에 묶여 있어 몇 년 뒤 `npm ci` 가 안 될 수 있습니다. 보험이 둘 있습니다.
+  (1) 릴리스마다 `npm run build:single` 의 `dist-single/index.html` 을 GitHub Releases 에 첨부해 둡니다 — 이 파일 하나는 의존성 없이 영원히 열립니다.
+  (2) `legacy/v1-single-file.html` 은 빌드 도구가 없던 첫 버전입니다.
+  의존성 업그레이드는 깨졌을 때만, 한 번에 하나씩(`npm test`·`npm run smoke` 로 확인).
+- **Node**: `.nvmrc`(22). 매년 10월 LTS 가 바뀌면 `.nvmrc` 와 `.github/workflows/deploy.yml` 의 `node-version` 을 같이 올립니다.
+- **사용자 데이터**는 브라우저 안에만 있습니다. 백업은 앱의 설정 → 백업(내보내기·불러오기)으로 사용자가 합니다. 서버도 계정도 없습니다.
+- **라이선스**: 코드는 `LICENSE`(MIT). 레시피 데이터(`src/data/recipes.ts`)는 출처가 적힌 공개 레시피를 수치로 옮긴 것입니다.
+- **릴리스**: `CHANGELOG.md` 가 아직 없습니다 — 다음 릴리스에 만들고, Releases 에서 `vX.Y.Z` 태그.
+- 계정·정기 점검·다른 저장소: 허브 저장소(shiroleestudio.github.io)의 `STUDIO.md`.
