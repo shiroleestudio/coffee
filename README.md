@@ -30,7 +30,7 @@ npm run build:single # dist-single/index.html — 외부 의존성 없는 단일
 
 ## GitHub Pages 배포
 
-주소: **https://shiroleestudio.github.io/coffee/** (저장소 shiroleestudio/coffee)
+주소: **https://coffee.shiroleestudio.com/** (저장소 shiroleestudio/coffee). Actions 배포라 `CNAME` 파일이 아니라 Settings → Pages → Custom domain 에 적은 값이 주소를 정합니다. 옛 주소 shiroleestudio.github.io/coffee/ 는 GitHub 이 넘겨 줍니다. 도메인·DNS 는 허브 저장소의 `STUDIO.md`.
 
 `main` 에 푸시하면 `.github/workflows/deploy.yml` 이 검사(lint·테스트) → 빌드 → 배포합니다.
 검사가 실패하면 배포하지 않으므로, 잘못된 빌드가 돌고 있는 사이트를 덮어쓰지 않습니다.
@@ -48,9 +48,8 @@ Pages 설정은 Settings → Pages → Build and deployment → Source = **GitHu
   저장됩니다. 파일로 열던 버전과 Pages 버전은 서로 다른 저장소를 씁니다 — 옮기려면
   설정 → 백업에서 내보내고 불러오세요. 기록은 공개되지 않습니다.
 - **공개 사이트입니다.** 주소를 아는 사람은 누구나 레시피를 볼 수 있습니다 (저장소도 공개).
-- 같은 조직의 다른 Pages 프로젝트와 브라우저 저장소를 공유합니다(`shiroleestudio.github.io`).
-  이 앱의 키는 `mcr:` 로 시작해 겹치지 않지만, 다른 앱이 저장소 전체를 지우면 같이 지워집니다.
-  가끔 백업을 내보내 두세요.
+- 브라우저 저장소는 주소(coffee.shiroleestudio.com)마다 따로입니다. 주소를 옮기면 기록이 빈 것처럼 보이니,
+  옮기기 전에 설정 → 백업에서 내보내 두세요. 가끔 백업을 내보내 두는 것도 좋습니다.
 
 ## 검증
 
