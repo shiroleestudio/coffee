@@ -2,6 +2,15 @@
 
 폰으로 보며 커피를 내리는 개인 레시피 앱. Vite + React + TypeScript.
 
+## 공통 규칙 (이시로스튜디오 모든 저장소)
+
+- **5~10년 운영 원칙.** 단순·표준·문서화·저의존성을 고른다. 사람이 혼자, 또는 다른 AI 도구로도 읽고 고칠 수 있어야 한다. 새 의존성·도구는 유지 비용을 먼저 따진다. 문서는 코드 옆에 두고, 코드를 바꾸는 PR 이 문서도 함께 고친다.
+- **실명 금지.** 코드·커밋·문서·문구 어디에도 개인 실명·소속·직업을 넣지 않는다. 표시명은 '아기토끼 시로' 또는 '이시로스튜디오'. 커밋 작성자는 `시로 <231594769+dooholee96-code@users.noreply.github.com>`.
+- **변경 전 확인.** 코드 변경·PR 은 소유자에게 먼저 확인하고, 변경은 PR 로 한다. `main` 머지는 소유자가 "머지해줘"라고 할 때만 한다. 작업을 마치면 바뀐 점 요약과 '다음 할 일' 한 줄을 적는다.
+- **릴리스.** `CHANGELOG.md` 맨 위 한 줄 + `vX.Y.Z` 태그(머지한 뒤 Releases 에서 만든다).
+- **검증.** `npm test`, `npm run lint`, `npm run typecheck`. 화면을 바꿨으면 `npm run smoke`(Chromium 필요).
+- 계정·도메인·정기 점검은 허브 저장소(shiroleestudio/shiroleestudio.github.io)의 `STUDIO.md`.
+
 ## 명령
 
 - `npm run dev` / `npm run build` / `npm run build:single` (단일 HTML 산출물)
